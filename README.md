@@ -1,93 +1,132 @@
-# Operacionalito 🔧
-Simulador de Escalonador de Processos com Prioridade
+🚀 Simulação de Escalonamento de Processos com Prioridade
 
-Este projeto é uma simulação em linguagem C de um escalonador de processos para um sistema operacional simplificado. O programa gerencia a execução de múltiplos processos com base em um algoritmo de prioridade preenptiva, lidando com operações de CPU e I/O (Entrada/Saída).
+Este projeto é uma simulação de escalonamento de processos em linguagem C, utilizando filas de prioridade e filas FIFO para CPU e I/O.
 
-# Funcionalidades 🪧
+O objetivo é reproduzir, de forma simplificada, o funcionamento de um sistema operacional que gerencia múltiplos processos concorrentes, respeitando prioridades, fatias de tempo (quantum) e ciclos de I/O.
 
-    Leitura de Processos: Carrega uma lista de processos a partir de um arquivo processos.txt.
+📂 Estrutura do Projeto
+```bash
+.
+├── main.c          # Código-fonte da simulação
+├── processos.txt   # Arquivo de entrada com os processos
+└── saida.txt       # Arquivo de saída gerado após a simulação
+```
 
-    Escalonamento por Prioridade: Utiliza uma fila de prioridades para determinar qual processo deve usar a CPU. Processos com menor número de prioridade são executados primeiro.
+📑 Estrutura do Código
+🔹 struct Processo
 
-    Simulação de CPU e I/O: Gerencia o tempo de processamento e de I/O de cada processo, movendo-os entre as filas de CPU e I/O.
+Cada processo é representado pela seguinte estrutura:
+```C
+struct Processo {
+    int id;                 // Identificador do processo
+    int tempoEntrada;       // Ciclo em que o processo entra no sistema
+    int tempoIO_total;      // Tempo total necessário em I/O
+    int tempoProc_total;    // Tempo total necessário em CPU
+    int prio;               // Prioridade (1 = mais alta, 5 = mais baixa)
+    int tempoIO_restante;   // Tempo de I/O restante
+    int tempoProc_restante; // Tempo de processamento restante
+    int tempoSaida;         // Ciclo em que o processo foi concluído
+    struct Processo* proximo; // Ponteiro para próximo processo (lista encadeada)
+};
+```
+🔹 Funções Principais
 
-    Fatias de Tempo (Quantum): Concede fatias de tempo fixas para uso da CPU (3 ciclos) e I/O (6 ciclos).
+- Gerenciamento de filas
 
-    Geração de Relatório: Ao final da simulação, gera um arquivo saida.txt com o ID de cada processo e seu tempo de finalização no sistema.
+    - `inserirEmFila` → Insere um processo em uma fila ordenada por prioridade.
 
-    Gerenciamento de Memória: Realiza a alocação dinâmica de memória para os processos e a libera ao final da execução para evitar vazamentos de memória.
+    - `removerDaFila` → Remove o processo da cabeça da fila.
 
-# Como Funciona ⚙️
+    - `inserirFimFila` → Insere um processo no fim da fila (usado para I/O e lista de espera).
 
-O sistema opera em um laço principal que simula ciclos de clock. A cada ciclo, o simulador realiza as seguintes ações:
+- Entrada e saída
 
-    Verificação de Entrada: Checa se algum processo deve entrar no sistema com base no seu tempoEntrada. Se sim, o processo é inserido na Fila de Processamento.
+    - `readFile` → Lê os processos do arquivo processos.txt.
 
-    Fila de Processamento (CPU):
+    - `escreverArquivoSaida` → Gera o arquivo saida.txt com os processos finalizados.
 
-        É uma fila de prioridade. O processo com o menor valor no campo prio é sempre o primeiro.
+- Gerenciamento de memória
 
-        O processo no topo da fila recebe uma fatia de tempo de CPU (QUANTUM_CPU).
+    - liberarMemoria → Libera memória alocada dinamicamente ao final da execução.
 
-    Fila de I/O:
+- Loop principal da simulação
 
-        É uma fila comum (FIFO - Primeiro a Entrar, Primeiro a Sair), sem prioridades.
+    - Entrada de novos processos no sistema.
 
-        Processos que necessitam de operações de I/O são movidos para esta fila.
+    - Execução de I/O com fatia de tempo definida.
 
-        Ao receber sua fatia de I/O (QUANTUM_IO), o processo retorna à fila de processamento para continuar sua execução.
+    - Escalonamento de CPU considerando prioridade e quantum.
 
-    Ciclo de Vida de um Processo:
+    - Encerramento de processos e registro no log.
 
-        Um processo alterna entre as filas de CPU e I/O até que seu tempoProc_restante e tempoIO_restante sejam zerados.
+📜 Arquivo de Entrada (processos.txt)
 
-        Ao finalizar todas as suas tarefas, o processo utiliza um último ciclo de clock para seu encerramento e é movido para uma lista de finalizados.
-
-# Estrutura do Código 📂
-
-O código é estruturado em torno da struct Processo e de um conjunto de funções que gerenciam a simulação e as filas.
-Função	Descrição
-main()	Orquestra toda a simulação, controla o avanço do clock e chama as funções de gerenciamento.
-readFile()	Lê o arquivo processos.txt e cria a lista inicial de processos na memória.
-inserirEmFila()	Insere um processo na fila de CPU, mantendo a ordem de prioridade.
-inserirFimFila()	Insere um processo no final da fila de I/O (lógica FIFO).
-removerDaFila()	Remove o primeiro processo de uma fila para que ele possa ser executado.
-escreverArquivoSaida()	Gera o arquivo saida.txt com os resultados da simulação.
-liberarMemoria()	Percorre a lista de processos finalizados e libera toda a memória alocada.
-
-# Como Compilar e Executar ▶️
-
-Pré-requisitos
-
-    Um compilador C (como o GCC).
-
-    O arquivo processos.txt no mesmo diretório do código-fonte.
-
-Arquivo processos.txt
-
-Crie um arquivo chamado processos.txt onde cada linha representa um processo, com os seguintes atributos separados por ponto e vírgula:
-id;tempoEntrada;tempoIO;tempoProcessamento;prioridade
-
-Exemplo:
-
+O arquivo de entrada deve conter uma lista de processos no seguinte formato:
+```bash
+id;tempoEntrada;tempoIO_total;tempoProc_total;prioridade
+```
+Exemplo usado no projeto:
+```txt
 1;1;5;12;3
 2;2;4;8;2
 3;4;3;15;1
-
-Passos para Execução
-
-    Compile o código através do terminal:
-
-gcc seu_arquivo.c -o simulador
-
-Execute o programa compilado:
-
-```Bash
-./simulador
+4;6;0;7;4
+5;8;6;10;5
+6;10;2;14;3
+7;12;8;7;2
+8;14;5;11;4
+9;16;3;13;1
+10;18;6;9;5
+11;20;4;12;2
+12;22;7;8;3
+13;24;2;15;4
+14;26;5;10;1
+15;28;3;14;5
 ```
 
-Verifique os resultados:
+⚙️ Funcionamento da Simulação
 
-    O console exibirá um log detalhado de cada ciclo da simulação.
+- Quantum da CPU: 3 ciclos
 
-    Um arquivo saida.txt será criado com o tempo de saída de cada processo.
+- Quantum de I/O: 6 ciclos
+
+Prioridades: quanto menor o número, maior a prioridade (1 é mais urgente, 5 é menos).
+
+🔄 Fluxo da simulação
+
+1. Processos entram no sistema no ciclo indicado.
+
+2. Processos vão para a fila da CPU (prioridade).
+
+3. Quando precisam de I/O, são enviados para a fila de I/O (FIFO).
+
+4. Se concluírem o I/O, retornam à CPU ou finalizam se não houver mais trabalho.
+
+5. Processos são encerrados e registrados em saida.txt.
+
+▶️ Como Compilar e Executar
+
+🔹 Compilar
+No terminal:
+```bash
+gcc main.c -o filaMain
+```
+
+🔹 Executar
+```bash
+./filaMain
+```
+- O programa irá:
+
+    - Ler processos.txt.
+
+    - Simular o escalonamento.
+
+    - Exibir logs no terminal.
+
+    - Gerar saida.txt com o resultado final.
+
+
+
+
+
