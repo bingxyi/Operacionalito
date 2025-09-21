@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX 15      // Número máximo de processos
+// #define MAX 15      // Número máximo de processos
 #define QUANTUM_CPU 3  // Fatia de tempo de clock para processamento
 #define QUANTUM_IO 6 // Fatia de tempo de clock para I/O
 
