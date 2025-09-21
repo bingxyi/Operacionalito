@@ -1,10 +1,12 @@
-🚀 Simulação de Escalonamento de Processos com Prioridade
+# Projeto "Operacionalito"
 
+### 🔧 Simulação de escalonamento de processos com sistema de prioridade
 Este projeto é uma simulação de escalonamento de processos em linguagem C, utilizando filas de prioridade e filas FIFO para CPU e I/O.
 
 O objetivo é reproduzir, de forma simplificada, o funcionamento de um sistema operacional que gerencia múltiplos processos concorrentes, respeitando prioridades, fatias de tempo (quantum) e ciclos de I/O.
 
-📂 Estrutura do Projeto
+
+## 📂 Estrutura do Projeto
 ```bash
 .
 ├── main.c          # Código-fonte da simulação
@@ -12,8 +14,9 @@ O objetivo é reproduzir, de forma simplificada, o funcionamento de um sistema o
 └── saida.txt       # Arquivo de saída gerado após a simulação
 ```
 
-📑 Estrutura do Código
-🔹 struct Processo
+
+## 📑 Estrutura do Código
+### 🔹 struct Processo
 
 Cada processo é representado pela seguinte estrutura:
 ```C
@@ -29,7 +32,7 @@ struct Processo {
     struct Processo* proximo; // Ponteiro para próximo processo (lista encadeada)
 };
 ```
-🔹 Funções Principais
+### 🔹 Funções Principais
 
 - Gerenciamento de filas
 
@@ -59,7 +62,8 @@ struct Processo {
 
     - Encerramento de processos e registro no log.
 
-📜 Arquivo de Entrada (processos.txt)
+
+## 📜 Arquivo de Entrada (processos.txt)
 
 O arquivo de entrada deve conter uma lista de processos no seguinte formato:
 ```bash
@@ -84,7 +88,8 @@ Exemplo usado no projeto:
 15;28;3;14;5
 ```
 
-⚙️ Funcionamento da Simulação
+
+## ⚙️ Funcionamento da Simulação
 
 - Quantum da CPU: 3 ciclos
 
@@ -92,7 +97,7 @@ Exemplo usado no projeto:
 
 Prioridades: quanto menor o número, maior a prioridade (1 é mais urgente, 5 é menos).
 
-🔄 Fluxo da simulação
+### 🔄 Fluxo da simulação
 
 1. Processos entram no sistema no ciclo indicado.
 
@@ -104,15 +109,16 @@ Prioridades: quanto menor o número, maior a prioridade (1 é mais urgente, 5 é
 
 5. Processos são encerrados e registrados em saida.txt.
 
-▶️ Como Compilar e Executar
 
-🔹 Compilar
+## ▶️ Como Compilar e Executar
+
+### 🔹 Compilar
 No terminal:
 ```bash
 gcc main.c -o filaMain
 ```
 
-🔹 Executar
+### 🔹 Executar
 ```bash
 ./filaMain
 ```
@@ -125,8 +131,4 @@ gcc main.c -o filaMain
     - Exibir logs no terminal.
 
     - Gerar saida.txt com o resultado final.
-
-
-
-
-
+_________
