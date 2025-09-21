@@ -1,102 +1,253 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX 15
+#define MAX 15      // Número máximo de processos
+#define QUANTUM_CPU 3  // Fatia de tempo de clock para processamento
+#define QUANTUM_IO 6 // Fatia de tempo de clock para I/O
 
 struct Processo {
-    int id; // ID do processo
-    int burstTime;      // Tempo necessário para um processo concluir a sua execução na CPU
-    int remainingTime;      // Tempo restante
+    int id;     // id do processo 1-15
+    int tempoEntrada;   // tempo de entrada do processo 1 a 28 (dois em dois de acordo com id de 1 a 15)
+    int tempoIO_total;      // tempo de I/O do processo
+    int tempoProc_total;   // tempo de processamento do processo
+    int prio;           // Prioridade de 1 A 5
+    int tempoIO_restante;   // tempo de I/O restante
+    int tempoProc_restante;    // tempo de processamento restante
+    int tempoSaida;     // tempo de saida do processo
+    struct Processo* proximo;
 };
 
-// Função para realizar o agendamento de processo do Round Robin
-void roundRobin(struct Processo processos[], int n, int timeQuantum) {
-    int time = 0;   // Rastreia o tempo atual da fila
-    int completed = 0;
-    int waitingTime = 0, turnAroundTime = 0;
-    int processosQueue[MAX];
-    int front = 0, rear = 0;
 
-    printf("---Iniciando a execucao do Round Robin---\n");
-    printf("Time Quantum: %d segundos\n\n", timeQuantum);
+/**
+Inserir um processo na fila de forma ordenada pela prioridade
+Quanto menor o valor de prio, mais a frente ele sera inserido na fila
+cabecaFila e a cabeca atual da fila, ou seja, o topo
+novoProcesso e o novo processo a ser inserido
+**/
+struct Processo* inserirEmFila (struct Processo* cabecaFila, struct Processo* novoProcesso) {
+    // Caso 1: A fila esta vazia ou o novo processo tem maior prioridade que o primeiro item da fila
+    if (cabecaFila == NULL || novoProcesso->prio < cabecaFila->prio) {
+        novoProcesso->proximo = cabecaFila;
+        return novoProcesso;
+    }
 
-    // Fazendo um array para assistir o processo
-    while (completed < n) {
-        int processRanInThisCycle = 0;   // Flag para verificar se algum processo rodou no ciclo
+    // Caso 2: Percorre a fila para encontrar o local de insercao
+    struct Processo* atual = cabecaFila;
 
-        // Loop for para percorrer todos os processos para ver qual deve ser executado
-        for (int i = 0; i < n; i++) {
-            // Caso o processo ainda possua tempo restante, o mesmo permanecerá na fila para ser executado
-            if (processos[i].remainingTime > 0) {
-                processRanInThisCycle = 1;  // Marca que o processo foi encontrado
-                printf("Tempo atual: %d | Processo %d selecionado (Restam: %d segundos)\n", time, processos[i].id, processos[i].remainingTime);
+    // Procura a posicao correta da fila
+    while (atual->proximo != NULL && novoProcesso->prio >= atual->proximo->prio) {
+        atual = atual->proximo;
+    }
 
-                // Caso 1: O processo precisa de mais tempo do que o time quantum (tempo quantico)
-                if (processos[i].remainingTime > timeQuantum) {
-                    processos[i].remainingTime -= timeQuantum;
-                    time += timeQuantum;
+    // Inserir o novo processo na posicao encontrada
+    novoProcesso->proximo = atual->proximo;
+    atual->proximo = novoProcesso;
 
-                    printf(" -> Processo %d executou por %d segundos | Tempo restante: %d\n\n", processos[i].id, timeQuantum, processos[i].remainingTime);
+    return cabecaFila;
+}
+
+/**
+Remove e retorna o processo com maior prioridade para a cabeca da fila
+ponteiro duplo para modificar a cabeca da fila na sua origem
+o processo removido ou NULL se a fila estiver vazia
+**/
+struct Processo* removerDaFila (struct Processo** cabecaFila) {
+    // Caso 1: fila vazia
+    if (cabecaFila == NULL || *cabecaFila == NULL) {
+        return NULL;
+    }
+
+    struct Processo* processoRemovido = *cabecaFila;
+    *cabecaFila = processoRemovido->proximo;
+
+    processoRemovido->proximo = NULL;
+    return processoRemovido;
+}
+
+/**
+Insere um processo no final de uma fila (usado para a fila de I/O, que é FIFO).
+Esta função necessária para a lógica de I/O sem prioridade.
+**/
+void inserirFimFila(struct Processo** cabecaFila, struct Processo* novoProcesso) {
+    novoProcesso->proximo = NULL;
+    if (*cabecaFila == NULL) {
+        *cabecaFila = novoProcesso;
+        return;
+    }
+    struct Processo* atual = *cabecaFila;
+    while (atual->proximo != NULL) {
+        atual = atual->proximo;
+    }
+    atual->proximo = novoProcesso;
+}
+
+/**
+Função para leitura do arquivo
+Carrega os processos do arquivo processos.txt para uma lista
+**/
+struct Processo* readFile (const char* processos) {
+    FILE *file = fopen("processos.txt", "r");
+    if (file == NULL) {
+        printf("ERROR: Nao foi possivel abrir o arquivo\n");
+        return NULL;
+    }
+
+    struct Processo* cabecaLista = NULL;
+
+    int id, tempoEntrada, tempoIO, tempoProc, prio;
+    int contador = 0;
+
+    // 1. Aloca memoria para o novo processo
+    while (fscanf(file, "%d;%d;%d;%d;%d", &id, &tempoEntrada, &tempoIO, &tempoProc, &prio) == 5) {
+        struct Processo* novoProcesso = (struct Processo*)malloc(sizeof(struct Processo));
+        if (novoProcesso == NULL) {
+            printf("Nao foi possivel alocar memoria para o processo\n");
+            fclose(file);
+            return NULL;
+        }
+        novoProcesso->id = id;
+        novoProcesso->tempoEntrada = tempoEntrada;
+        novoProcesso->tempoIO_total = tempoIO;
+        novoProcesso->tempoProc_total = tempoProc;
+        novoProcesso->prio = prio;
+
+        novoProcesso->tempoIO_restante = tempoIO;
+        novoProcesso->tempoProc_restante = tempoProc;
+        novoProcesso->tempoSaida = 0;
+
+        inserirFimFila(&cabecaLista, novoProcesso);
+        contador++;
+    }
+
+    fclose(file);
+    printf("Arquivo lido com sucesso. %d processos carregados.\n\n", contador);
+    return cabecaLista;
+}
+
+/**
+Escreve o resultado do sistema em um arquivo "saida.txt"
+**/
+void escreverArquivoSaida(struct Processo* processosFinalizados) {
+    FILE *file = fopen("saida.txt", "w");
+    if (file == NULL) {
+        printf("Nao foi possivel criar o arquivo de saida\n");
+        return;
+    }
+    fprintf(file,"Tempo de saida;ID do processo\n");
+    struct Processo* atual = processosFinalizados;
+
+    while (atual != NULL) {
+        // CORREÇÃO: Usar tempoSaida, ';' como separador e '\n' para nova linha
+        fprintf(file, "%d;%d\n", atual->tempoSaida, atual->id);
+        atual = atual->proximo;
+    }
+    fclose(file);
+    printf("\nArquivo saida.txt criado com sucesso\n");
+}
+
+// Boa prática para evitar travamentos ou lixo na saida do codigo
+// Libera toda a memória alocada para uma lista de processos.
+void liberarMemoria(struct Processo* cabecaFila) {
+    struct Processo* atual = cabecaFila;
+    struct Processo* proximo = NULL;
+
+    while (atual != NULL) {
+        proximo = atual->proximo;   // 1. Guarda a referência para o proximo nó
+        free(atual);                // 2. Libera a memória do nó atual
+        atual = proximo;            // 3. Avança para o próximo nó que guardamos
+    }
+}
+
+// Função principal do sistema
+int main() {
+    // Listas e filas do Sistema
+    struct Processo* listaDeEspera = readFile("processos.txt");
+    struct Processo* filaDeProcessamento = NULL;
+    struct Processo* filaDeIO = NULL;
+    struct Processo* processosFinalizados = NULL;
+
+    if (listaDeEspera == NULL) {
+        return 1;   // Encerra o programa caso não consiga ler o arquivo
+    }
+
+    int cicloAtual = 0;
+    int totalProcessos = 15;
+    int processosConcluidos = 0;
+
+    // Loop principal: continua enquanto houver processos em qualquer lugar do sistema
+    while (processosConcluidos < totalProcessos) {
+        // 1. Novos Processos
+        while (listaDeEspera != NULL && listaDeEspera->tempoEntrada <= cicloAtual) {
+            struct Processo* p = removerDaFila(&listaDeEspera);
+            printf("Ciclo %-3d: [ENTRADA] Processo %2d (Prio %d) entrou no sistema.\n", cicloAtual, p->id, p->prio);
+            filaDeProcessamento = inserirEmFila(filaDeProcessamento, p);
+        }
+
+        // 2. Processamento de I/O
+        if (filaDeIO != NULL) {
+            struct Processo* p = removerDaFila(&filaDeIO);
+            p->tempoIO_restante -= QUANTUM_IO;
+
+            if (p->tempoIO_restante <= 0) {
+                printf("Ciclo %-3d: [I/O FIM] Processo %2d terminou I/O. ", cicloAtual, p->id);
+                // Se não precisa mais de CPU, vai para o ciclo final de encerramento
+                if (p->tempoProc_restante <= 0) {
+                     p->tempoProc_restante = 1;
+                     printf("Indo para o ciclo de encerramento.\n");
+                } else {
+                     printf("Voltando para a fila de CPU.\n");
                 }
-                // Caso 2: O processo precisa de mais ou menos o mesmo tempo que o time Quantum
-                else {
-                    // Avança o tempo total pelo tempo que faltava para o processo
-                    time += processos[i].remainingTime;
-
-                    // O tempo de espera para este processo é o tempo final menos seu burst time original
-                    waitingTime += time - processos[i].burstTime;
-
-                    // O tempo de turnaround para este processo é o tempo total que ele levou no sistema
-                    turnAroundTime += time;
-
-                    printf(" -> Processo %d executou por %d segundos e foi concluido!\n", processos[i].id, processos[i].remainingTime);
-                    printf(" -> Tempo total para o sistema P%d: %d segundos\n\n", processos[i].id, time);
-
-                    // Zera o tempo restante e marca como processo completo
-                    processos[i].remainingTime = 0;
-                    completed++;
-                }
+                filaDeProcessamento = inserirEmFila(filaDeProcessamento, p);
+            } else {
+                // Se ainda precisa de I/O, volta para a fila de I/O
+                inserirFimFila(&filaDeIO, p);
             }
         }
-        // Caso nenhum processo rodou neste ciclo, significa que a CPU esta ociosa
-        // (E mais relevante quando processos possuem tempos de chegada diferentes)
-        if (!processRanInThisCycle) {
-            time++;
+
+        // 3. Processamento da CPU
+        if (filaDeProcessamento != NULL) {
+            struct Processo* p = removerDaFila(&filaDeProcessamento);
+
+            // Caso especial de encerramento (1 ciclo)
+            if (p->tempoProc_restante == 1 && p->tempoIO_restante <= 0 && p->tempoProc_total == 0) {
+                p->tempoSaida = cicloAtual + 1;
+                printf("Ciclo %-3d: [CONCLUÍDO] Processo %2d finalizado. Saida no ciclo %d.\n", cicloAtual, p->id, p->tempoSaida);
+                inserirFimFila(&processosFinalizados, p);
+                processosConcluidos++;
+            } else { // Execução normal
+                printf("Ciclo %-3d: [CPU INI] Processo %2d (Prio %d) executando. (CPU: %d, I/O: %d)\n", cicloAtual, p->id, p->prio, p->tempoProc_restante, p->tempoIO_restante);
+                p->tempoProc_restante -= QUANTUM_CPU;
+
+                if (p->tempoProc_restante <= 0 && p->tempoIO_restante <= 0) {
+                    p->tempoProc_restante = 1; // Prepara para o ciclo de encerramento
+                    p->tempoProc_total = 0; // Flag para indicar que o processamento principal acabou
+                    printf("Ciclo %-3d: [CPU FIM] Processo %2d terminou tarefas. Preparando para encerrar.\n", cicloAtual, p->id);
+                    filaDeProcessamento = inserirEmFila(filaDeProcessamento, p);
+                } else if (p->tempoIO_restante > 0) {
+                    printf("Ciclo %-3d: [CPU FIM] Processo %2d movido para a fila de I/O.\n", cicloAtual, p->id);
+                    inserirFimFila(&filaDeIO, p);
+                } else {
+                    printf("Ciclo %-3d: [CPU FIM] Processo %2d voltou para a fila de CPU.\n", cicloAtual, p->id);
+                    filaDeProcessamento = inserirEmFila(filaDeProcessamento, p);
+                }
+            }
+        } else {
+             printf("Ciclo %-3d: [CPU OCIOSA]\n", cicloAtual);
         }
+
+        cicloAtual++;
     }
 
-    printf("---Execucao finalizada!---");
-    // Conversão de valores de int para float => (float)
-    printf("\nTempo de espera aproximadamente = %.2f segundos\n", (float)waitingTime / n);
-    printf("Tempo de 'TurnAround' aproximadamente = %.2f segundos\n", (float) turnAroundTime / n);
-}
+    printf("\n--- SIMULACAO FINALIZADA NO CICLO %d ---\n", cicloAtual);
+    escreverArquivoSaida(processosFinalizados);
 
-// Função main
-int main() {
-    struct Processo processos[MAX];
-    int n, timeQuantum;         // n = número de processos && timeQuantum = fatia de tempo que cada processo receberá do clock
 
-    printf("Insira o numero de processos de 1 a 15: ");
-    scanf("%d", &n);
+    printf("Liberando memoria alocada...\n");
+    liberarMemoria(processosFinalizados);
 
-    for (int i = 0; i < n; i++) {
-        processos[i].id = i + 1;
-        printf("Insira o tempo necessario para a conclusao do processo %d: ", i + 1);
-        scanf("%d", &processos[i].burstTime);
 
-        processos[i].remainingTime = processos[i].burstTime; // Inicializa o tempo restante
-    }
-
-    printf("Insira o tempo quantico, ou seja, a fatia de tempo do processador: ");
-    scanf("%d", &timeQuantum);
-
-    // rodando o round robin
-    roundRobin(processos, n, timeQuantum);
     return 0;
 }
-
-
-
 
 
 
