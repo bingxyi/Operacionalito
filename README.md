@@ -1,4 +1,4 @@
-# Operacionalito
+# Operacionalito 🔧
 Simulador de Escalonador de Processos com Prioridade
 
 Este projeto é uma simulação em linguagem C de um escalonador de processos para um sistema operacional simplificado. O programa gerencia a execução de múltiplos processos com base em um algoritmo de prioridade preenptiva, lidando com operações de CPU e I/O (Entrada/Saída).
@@ -17,7 +17,7 @@ Este projeto é uma simulação em linguagem C de um escalonador de processos pa
 
     Gerenciamento de Memória: Realiza a alocação dinâmica de memória para os processos e a libera ao final da execução para evitar vazamentos de memória.
 
-# Como Funciona
+# Como Funciona ⚙️
 
 O sistema opera em um laço principal que simula ciclos de clock. A cada ciclo, o simulador realiza as seguintes ações:
 
@@ -43,7 +43,7 @@ O sistema opera em um laço principal que simula ciclos de clock. A cada ciclo, 
 
         Ao finalizar todas as suas tarefas, o processo utiliza um último ciclo de clock para seu encerramento e é movido para uma lista de finalizados.
 
-# Estrutura do Código
+# Estrutura do Código 📂
 
 O código é estruturado em torno da struct Processo e de um conjunto de funções que gerenciam a simulação e as filas.
 Função	Descrição
@@ -55,7 +55,7 @@ removerDaFila()	Remove o primeiro processo de uma fila para que ele possa ser ex
 escreverArquivoSaida()	Gera o arquivo saida.txt com os resultados da simulação.
 liberarMemoria()	Percorre a lista de processos finalizados e libera toda a memória alocada.
 
-# Como Compilar e Executar
+# Como Compilar e Executar ▶️
 
 Pré-requisitos
 
@@ -77,7 +77,6 @@ Exemplo:
 Passos para Execução
 
     Compile o código através do terminal:
-    Bash
 
 gcc seu_arquivo.c -o simulador
 
