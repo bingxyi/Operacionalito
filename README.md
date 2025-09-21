@@ -3,7 +3,7 @@ Simulador de Escalonador de Processos com Prioridade
 
 Este projeto é uma simulação em linguagem C de um escalonador de processos para um sistema operacional simplificado. O programa gerencia a execução de múltiplos processos com base em um algoritmo de prioridade preenptiva, lidando com operações de CPU e I/O (Entrada/Saída).
 
-# Funcionalidades
+# Funcionalidades 🪧
 
     Leitura de Processos: Carrega uma lista de processos a partir de um arquivo processos.txt.
 
