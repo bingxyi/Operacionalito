@@ -1,2 +1,2 @@
 # Operacionalito
-Fila em C para processos (é necessário revisar o código e testar o funcionamento !!)
+Simulação de sistema de processos com prioridade, envolvendo tempo de processamento, tempo de IO e prioridade
