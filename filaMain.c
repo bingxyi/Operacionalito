@@ -52,7 +52,7 @@ ponteiro duplo para modificar a cabeca da fila na sua origem
 o processo removido ou NULL se a fila estiver vazia
 **/
 struct Processo* removerDaFila (struct Processo** cabecaFila) {
-    // Caso 1: fila vazia
+    // Caso a fila esteja vazia
     if (cabecaFila == NULL || *cabecaFila == NULL) {
         return NULL;
     }
@@ -97,7 +97,7 @@ struct Processo* readFile (const char* processos) {
     int id, tempoEntrada, tempoIO, tempoProc, prio;
     int contador = 0;
 
-    // 1. Aloca memoria para o novo processo
+    // Alocando memoria para o novo processo
     while (fscanf(file, "%d;%d;%d;%d;%d", &id, &tempoEntrada, &tempoIO, &tempoProc, &prio) == 5) {
         struct Processo* novoProcesso = (struct Processo*)malloc(sizeof(struct Processo));
         if (novoProcesso == NULL) {
@@ -137,7 +137,6 @@ void escreverArquivoSaida(struct Processo* processosFinalizados) {
     struct Processo* atual = processosFinalizados;
 
     while (atual != NULL) {
-        // CORREÇÃO: Usar tempoSaida, ';' como separador e '\n' para nova linha
         fprintf(file, "%d;%d\n", atual->tempoSaida, atual->id);
         atual = atual->proximo;
     }
