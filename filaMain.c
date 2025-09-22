@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #define MAX 15      
 #define QUANTUM_CPU 3  // Fatia de tempo de clock para processamento
 #define QUANTUM_IO 6 // Fatia de tempo de clock para I/O
 
@@ -16,7 +15,6 @@ struct Processo {
     int tempoSaida;         // Ciclo em que o processo foi concluído
     struct Processo* proximo; // Ponteiro para próximo processo (lista encadeada)
 };
-
 
 /**
 Inserir um processo na fila de forma ordenada pela prioridade
@@ -236,14 +234,12 @@ int main() {
 
         cicloAtual++;
     }
-
+    
     printf("\n--- SIMULACAO FINALIZADA NO CICLO %d ---\n", cicloAtual);
     escreverArquivoSaida(processosFinalizados);
 
-
     printf("Liberando memoria alocada...\n");
     liberarMemoria(processosFinalizados);
-
 
     return 0;
 }
