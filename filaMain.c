@@ -6,15 +6,15 @@
 #define QUANTUM_IO 6 // Fatia de tempo de clock para I/O
 
 struct Processo {
-    int id;     // id do processo 1-15
-    int tempoEntrada;   // tempo de entrada do processo 1 a 28 (dois em dois de acordo com id de 1 a 15)
-    int tempoIO_total;      // tempo de I/O do processo
-    int tempoProc_total;   // tempo de processamento do processo
-    int prio;           // Prioridade de 1 A 5
-    int tempoIO_restante;   // tempo de I/O restante
-    int tempoProc_restante;    // tempo de processamento restante
-    int tempoSaida;     // tempo de saida do processo
-    struct Processo* proximo;
+    int id;                 // Identificador do processo
+    int tempoEntrada;       // Ciclo em que o processo entra no sistema
+    int tempoIO_total;      // Tempo total necessário em I/O
+    int tempoProc_total;    // Tempo total necessário em CPU
+    int prio;               // Prioridade (1 = mais alta, 5 = mais baixa)
+    int tempoIO_restante;   // Tempo de I/O restante
+    int tempoProc_restante; // Tempo de processamento restante
+    int tempoSaida;         // Ciclo em que o processo foi concluído
+    struct Processo* proximo; // Ponteiro para próximo processo (lista encadeada)
 };
 
 
